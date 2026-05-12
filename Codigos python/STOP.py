@@ -1,10 +1,5 @@
 from robodk import robolink
-
+# Para simular la parada de emergencia setea la vel de simulacion a 0
+# Para continuar la simulación, setear a vel normal(5) a mano o con ResetTotal
 RDK = robolink.Robolink()
-
-programas = RDK.ItemList(robolink.ITEM_TYPE_PROGRAM)
-
-for prog in programas:
-    if prog.Busy():
-        prog.Stop()
-
+RDK.setSimulationSpeed(0)
