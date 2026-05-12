@@ -1,7 +1,7 @@
 from robodk import robolink
 
 RDK = robolink.Robolink()
-
+RDK.setSimulationSpeed(5)
 programas = RDK.ItemList(robolink.ITEM_TYPE_PROGRAM)
 
 for prog in programas:
