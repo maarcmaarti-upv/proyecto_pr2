@@ -2,7 +2,9 @@ from robodk import robolink
 
 RDK = robolink.Robolink()
 
-# Detiene todos los programas en ejecución
-RDK.StopAll()
+programas = RDK.ItemList(robolink.ITEM_TYPE_PROGRAM)
 
-print("Todos los programas han sido detenidos.")
+for prog in programas:
+    if prog.Busy():
+        prog.Stop()
+
