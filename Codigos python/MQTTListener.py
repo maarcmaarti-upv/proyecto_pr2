@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import RobotController as rc
 
 # Configuracion MQTT
-broker = "mqtt.dsic.upv.es"
+broker = "broker.hivemq.com"
 port = 1883
 user = "giirob"
 passwd = "UPV2024"
