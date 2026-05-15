@@ -1,0 +1,123 @@
+import psycopg
+import paho.mqtt.client as mqtt
+import uuid
+
+# Configuración de MQTT
+broker = "broker.hivemq.com"
+port = 1883
+user = "giirob"
+passwd = "UPV2024"
+
+# Topics
+TOPIC_PAQ = "pr2/sahuquillers/paq"
+TOPIC_CAJA = "pr2/sahuquillers/caja"
+
+# Configuracion de la BD
+DB_CONFIG = {
+    "dbname": "proyecto_gdi",
+    "user": "postgres",
+    "password": "postgres",
+    "host": "localhost",
+    "port": "5432"
+}
+
+# Estado general
+contador_paq = 0
+contador_caja = 0
+ultimo_pallet = None
+
+def get_conn():
+    """Crea y devuelve una conexión a la base de datos configurando el schema."""
+    try:
+        conn = psycopg.connect(**DB_CONFIG)
+        # Configuramos el search_path inmediatamente al abrir la conexión
+        with conn.cursor() as cur:
+            cur.execute("SET search_path TO proyecto;")
+        return conn
+    except Exception as error:
+        print("Error al conectar a la base de datos:")
+        print(error)
+        exit()
+
+# Crea nuevo pallet en la BD
+def crear_pallet():
+    global ultimo_pallet
+
+    codigo = str(uuid.uuid4())[:8]
+
+    try:
+        # Ahora get_conn() sí existe y gestiona la conexión correctamente
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO pimientos.pallet (codigo, tamano, material, precio, tiempo) VALUES (%s, %s, %s, %s, %s)",
+                    (codigo, 120.0, "Madera", 15.50, 2.0)
+                )
+                conn.commit()
+
+        ultimo_pallet = codigo
+        print(f"[DB] Pallet creado: {codigo} con precio 15.50")
+
+    except Exception as e:
+        print("Error creando pallet:", e)
+
+# Crea nueva caja en la BD
+def crear_caja():
+    global ultimo_pallet
+
+    # Si no hay pallet, creamos uno primero
+    if ultimo_pallet is None:
+        crear_pallet()
+
+    codigo = str(uuid.uuid4())[:8]
+
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """INSERT INTO pimientos.caja (codigo, tamano, material, codigo_pallet)
+                       VALUES (%s, %s, %s, %s)""",
+                    (codigo, 10.0, "carton", ultimo_pallet)
+                )
+                conn.commit()
+
+        print(f"[DB] Caja creada: {codigo} → pallet {ultimo_pallet}")
+
+    except Exception as e:
+        print("Error creando caja:", e)
+
+# MQTT callback
+def on_message(client, userdata, msg):
+    global contador_paq, contador_caja
+
+    topic = msg.topic
+    payload = msg.payload.decode("utf-8")
+
+    print(f"[MQTT] {topic}: {payload}")
+
+    # Paquetes → Cajas
+    if topic == TOPIC_PAQ:
+        contador_paq += 1
+        if contador_paq >= 6:
+            crear_caja()
+            contador_paq = 0
+
+    # Cajas → Pallets
+    elif topic == TOPIC_CAJA:
+        contador_caja += 1
+        if contador_caja >= 12:
+            crear_pallet()
+            contador_caja = 0
+
+# Main
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+client.username_pw_set(user, passwd)
+
+client.on_message = on_message
+
+client.connect(broker, port, 60)
+
+client.subscribe("pr2/sahuquillers/#", 0)
+
+print("Escuchando MQTT...")
+client.loop_forever()
