@@ -14,7 +14,7 @@
 #define NET_PASSWD                "giirob-pr2-2023"
 
 // MQTT
-#define MQTT_SERVER_IP            "mqtt.dsic.upv.es"
+#define MQTT_SERVER_IP            "broker.hivemq.com"
 #define MQTT_SERVER_PORT          1883
 #define MQTT_USERNAME             "giirob"    // Descomentar esta línea (y la siguiente) para que se conecte al broker MQTT usando usuario y contraseña
 #define MQTT_PASSWORD             "UPV2024"
@@ -22,8 +22,9 @@
 #define HELLO_TOPIC               "giirob/pr2/devices/hello"    // TODO: topic ejemplo para ejercicio inicial de saludo de los dispositivos
 #define CAJA_TOPIC                "pr2/sahuquillers/caja"       // Topic para las cajas
 #define PAQ_TOPIC                 "pr2/sahuquillers/paq"        // Topic para los paquetes
-#define PAQ_TOPIC                 "pr2/sahuquillers/stop"       // Topic parada de emergencia
-
+#define STOP_TOPIC                "pr2/sahuquillers/stop"       // Topic parada de emergencia
 
 // IO
 #define LED_BUILTIN               2
+
+
