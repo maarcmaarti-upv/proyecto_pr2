@@ -1,27 +1,28 @@
 void on_setup() {
-    // Declaración de variables
-    const int sensor_caja = 4;
-    const int sensor_paq = 5; 
-    const int sensor_stop = 6; 
-    // Sensores
-    pinMode(sensor_caja, INPUT_PULLUP);
-    pinMode(sensor_paq, INPUT_PULLUP);
-    pinMode(sensor_stop, INPUT_PULLUP);
 
-    // Suscribirse a los topics
-    suscribirseATopics();
-    infoln("Sensores configurados en pines 4 y 5");
+  pinMode(PIN_CAJA, INPUT_PULLUP);
+  pinMode(PIN_PAQ, INPUT_PULLUP);
+  pinMode(PIN_STOP, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT);
 
-    // Mensaje inicial JSON
-    String hello_msg = String("Hola Mundo! Desde dispositivo ") + deviceID;
+  setInternalLed(1);
 
-    JsonDocument doc;
-    doc["message"] = hello_msg;
-    doc["luminosidad"] = 450;
-    doc["temperatura"] = 21.5;
+  attachInterrupt(PIN_STOP, isr_stop, FALLING);
 
-    String hello_msg_json;
-    serializeJson(doc, hello_msg_json);
+  xTaskCreatePinnedToCore(tareaLecturaSensores, "LecturaSensores", 5000, NULL, 1, NULL, 0);
+  xTaskCreatePinnedToCore(tareaEventos, "Eventos", 4000, NULL, 2, NULL, 1);
 
-    enviarMensajePorTopic(HELLO_TOPIC, hello_msg_json);
+  infoln("Tareas creadas correctamente");
+
+  String hello_msg = String("Hola Mundo! Desde dispositivo ") + deviceID;
+
+  JsonDocument doc;
+  doc["message"] = hello_msg;
+  doc["luminosidad"] = 450;
+  doc["temperatura"] = 21.5;
+
+  String hello_msg_json;
+  serializeJson(doc, hello_msg_json);
+
+  enviarMensajePorTopic(HELLO_TOPIC, hello_msg_json);
 }
