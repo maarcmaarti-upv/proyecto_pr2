@@ -10,8 +10,8 @@ DESPLAZAMIENTO_MM = 700
 TIEMPO_TOTAL = 1.5
 PASOS = 60
 
-# 🔥 Espera de 36 segundos ANTES de iniciar el ciclo
-time.sleep(36)
+# Espera de 1.5 segundos ANTES de iniciar el ciclo
+time.sleep(1.5)
 
 if CajaBase.Valid() and SistRefCinta.Valid():
 
