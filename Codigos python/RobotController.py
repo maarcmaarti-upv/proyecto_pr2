@@ -1,4 +1,5 @@
 from robodk import robolink
+import time
 
 # Conexión con RoboDK
 RDK = robolink.Robolink()
@@ -20,8 +21,10 @@ def handle_message(mqttc, topic, payload):
         ejecutar_pp_paq()
 
         # Cada 6 paquetes ejecuta cajas
-        if contador_paq_robot == 6:
+        if contador_paq_robot == 7:
             ejecutar_cajas()
+            time.sleep(1) # para dejar que se vaya la caja
+            ejecutar_pp_paq()
             contador_paq_robot = 0
 
     # Cuando recibe en el topic "pr2/sahuquillers/caja" -> "caja"
