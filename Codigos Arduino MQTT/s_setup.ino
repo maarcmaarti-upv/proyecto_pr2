@@ -1,9 +1,15 @@
+#include "buffer_circ.h"
 void on_setup() {
+
+  // Inicializar buffer FIFO
+  bufferEventos.bufIN = 0;
+  bufferEventos.bufOUT = 0;
+  bufferEventos.contador = 0;
 
   pinMode(PIN_CAJA, INPUT_PULLUP);
   pinMode(PIN_PAQ, INPUT_PULLUP);
   pinMode(PIN_STOP, INPUT_PULLUP);
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(PIN_LED, OUTPUT);
 
   setInternalLed(1);
 
@@ -11,6 +17,9 @@ void on_setup() {
 
   xTaskCreatePinnedToCore(tareaLecturaSensores, "LecturaSensores", 5000, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(tareaEventos, "Eventos", 4000, NULL, 2, NULL, 1);
+
+  // *** IMPORTANTE: tarea consumidora del buffer ***
+  xTaskCreatePinnedToCore(tareaConsumidor, "Consumidor", 4000, NULL, 2, NULL, 1);
 
   infoln("Tareas creadas correctamente");
 
