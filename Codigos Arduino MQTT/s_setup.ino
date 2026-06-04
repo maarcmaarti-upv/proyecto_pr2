@@ -6,6 +6,7 @@ void on_setup() {
   bufferEventos.bufOUT = 0;
   bufferEventos.contador = 0;
 
+  //config de los pines
   pinMode(PIN_CAJA, INPUT_PULLUP);
   pinMode(PIN_PAQ, INPUT_PULLUP);
   pinMode(PIN_STOP, INPUT_PULLUP);
@@ -13,12 +14,14 @@ void on_setup() {
 
   setInternalLed(1);
 
+  //config de la interrupcion
   attachInterrupt(PIN_STOP, isr_stop, FALLING);
 
+  //crea las tareas
   xTaskCreatePinnedToCore(tareaLecturaSensores, "LecturaSensores", 5000, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(tareaEventos, "Eventos", 4000, NULL, 2, NULL, 1);
 
-  // *** IMPORTANTE: tarea consumidora del buffer ***
+  //tarea consumidora del buffer
   xTaskCreatePinnedToCore(tareaConsumidor, "Consumidor", 4000, NULL, 2, NULL, 1);
 
   infoln("Tareas creadas correctamente");
