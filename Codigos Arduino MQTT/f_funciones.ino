@@ -12,10 +12,10 @@
 #define EVT_PAQ    2
 #define EVT_STOP   3
 
-volatile bool PARAR = false;
-volatile bool stopEvent = false;
+volatile bool PARAR = false;        // Señal global para detener tareas de forma coordinada
+volatile bool stopEvent = false;    // Bandera que indica que la ISR ha detectado un STOP
 
-bool lastCaja = HIGH;
+bool lastCaja = HIGH;               // Estados previos para detección por flanco
 bool lastPaq = HIGH;
 
 uint8_t ledStatus = 0;
@@ -23,7 +23,7 @@ uint8_t ledStatus = 0;
 // Buffer FIFO compartido
 Buffer_Circ bufferEventos;
 
-// Control del LED del pin 2
+// Control del LED del pin 2(no usado)
 void setInternalLed(uint8_t status) {
   if (ledStatus == status)
     return;
@@ -41,7 +41,7 @@ void setInternalLed(uint8_t status) {
 
 // ISR del botón STOP
 void IRAM_ATTR isr_stop() {
-  push(&bufferEventos, EVT_STOP);
+  push(&bufferEventos, EVT_STOP);   // El ISR solo encola,no ejecuta lógica pesada
   stopEvent = true;
 }
 
@@ -49,21 +49,21 @@ void IRAM_ATTR isr_stop() {
 void tareaLecturaSensores(void* parameter) {
   infoln("TareaLecturaSensores iniciada");
 
-  while (!PARAR) {
+  while (!PARAR) {                  // Se detiene cuando el sistema entra en modo emergencia
     bool c = digitalRead(PIN_CAJA);
     bool p = digitalRead(PIN_PAQ);
 
-    if (c != lastCaja) {
-      vTaskDelay(50 / portTICK_PERIOD_MS);  // antirrebote
+    if (c != lastCaja) {            // Detección por flanco para evitar lecturas continuas
+      vTaskDelay(50 / portTICK_PERIOD_MS);  // Antirrebote por software
       c = digitalRead(PIN_CAJA);
       if (c == LOW) {
-        push(&bufferEventos, EVT_CAJA);
+        push(&bufferEventos, EVT_CAJA);     // Se delega el procesamiento al consumidor
       }
-      lastCaja = c;
+      lastCaja = c;                 // Actualiza estado para futuros flancos
     }
 
-    if (p != lastPaq) {
-      vTaskDelay(50 / portTICK_PERIOD_MS);  // antirrebote
+    if (p != lastPaq) {             // Misma lógica para sensor de paquete
+      vTaskDelay(50 / portTICK_PERIOD_MS);
       p = digitalRead(PIN_PAQ);
       if (p == LOW) {
         push(&bufferEventos, EVT_PAQ);
@@ -71,11 +71,11 @@ void tareaLecturaSensores(void* parameter) {
       lastPaq = p;
     }
 
-    vTaskDelay(20 / portTICK_PERIOD_MS);
+    vTaskDelay(20 / portTICK_PERIOD_MS);    // delay de ritmo estable
   }
 
   infoln("TareaLecturaSensores finalizada");
-  vTaskDelete(NULL);
+  vTaskDelete(NULL);                // Finalización ordenada al activarse PARAR
 }
 
 // Tarea de gestión de eventos de parada
@@ -86,25 +86,26 @@ void tareaEventos(void* parameter) {
     if (stopEvent) {
       stopEvent = false;
 
-      push(&bufferEventos, EVT_STOP);
-      PARAR = true;
+      push(&bufferEventos, EVT_STOP); // Se asegura que el consumidor procese el STOP
+      PARAR = true;                   // Señal global para detener el sistema
     }
 
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    vTaskDelay(10 / portTICK_PERIOD_MS); // Frecuencia alta para reaccionar rápido al STOP
   }
 
   infoln("TareaEventos finalizada");
   vTaskDelete(NULL);
 }
+
 void tareaConsumidor(void* parameter) {
     int evt;
 
     while (true) {
-        if (pop(&bufferEventos, &evt) == 0) {
+        if (pop(&bufferEventos, &evt) == 0) {   // se procesan los eventos
 
             switch(evt) {
                 case EVT_CAJA:
-                    enviarMensajePorTopic(CAJA_TOPIC, "caja");
+                    enviarMensajePorTopic(CAJA_TOPIC, "caja");     // dependiendo del case hace una publicacion o otra
                     break;
 
                 case EVT_PAQ:
@@ -117,7 +118,6 @@ void tareaConsumidor(void* parameter) {
             }
         }
 
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);    // delay
     }
 }
-
