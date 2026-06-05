@@ -5,7 +5,7 @@ Realizado por: Marc Martí, Daniel Dunca, Alejandro Aznar y Ian Francisco Garcí
 Función: Claisifcación, empaquetado, encajado y paletizado de paquetes.
 
 Hemos establecido la conexión vía MQTT entre la simulación completa de la planta y 2 robots ABB antropomórficos. Uno encargado de meter 6 paquetes en una caja, y el otro encargado de paletizar las cajas una vez estas sean transportadas y cerradas.
-
+#
 # Para poder visualizar correctamente la memoria y el layout del archivo .rdk es necesario descargar el archivo.
 
 # Método de ejecución
