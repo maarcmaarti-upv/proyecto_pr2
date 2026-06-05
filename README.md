@@ -6,6 +6,8 @@ Función: Claisifcación, empaquetado, encajado y paletizado de paquetes.
 
 Hemos establecido la conexión vía MQTT entre la simulación completa de la planta y 2 robots ABB antropomórficos. Uno encargado de meter 6 paquetes en una caja, y el otro encargado de paletizar las cajas una vez estas sean transportadas y cerradas.
 
+# Para poder visualizar correctamente la memoria y el layout del archivo .rdk es necesario descargar el archivo.
+
 # Método de ejecución
 Para ejecutar correctamente el código, se debe ejecutar el código de Arduino con la esp32s3 conectada, abrir el layout de RoboDK y dejar abiertos los scripts de MQTTListener y RobotController. Y por último ejecutar el código de MQTTListener.
 
